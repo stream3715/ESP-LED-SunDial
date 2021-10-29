@@ -2,12 +2,12 @@
 
 static CmdParser cmdParser;
 
-void ParserLoop(bool *isRunning, long *setTime, long *lightMode)
+void ParserLoop(bool *isRunning, long *setTime, long *lightMode, long *brightness)
 {
   // use own buffer from serial input
   CmdBuffer<64> myBuffer;
 
-  Serial.println("\nStart Setting...");
+  Serial.println("\nSetting mode");
 
   // Read line from Serial until timeout
   if (myBuffer.readFromSerial(&Serial, 30000))
@@ -17,8 +17,6 @@ void ParserLoop(bool *isRunning, long *setTime, long *lightMode)
     {
       String param;
       uint16_t paramCnt = cmdParser.getParamCount();
-      Serial.print("[DEBUG] param count: ");
-      Serial.println(paramCnt);
 
       if (paramCnt > 2)
       {
@@ -28,8 +26,6 @@ void ParserLoop(bool *isRunning, long *setTime, long *lightMode)
       else if (paramCnt == 2)
       {
         param = cmdParser.getCmdParam(1);
-        Serial.print("[DEBUG] param value: ");
-        Serial.println(param);
       }
       // Check end
 
@@ -37,16 +33,14 @@ void ParserLoop(bool *isRunning, long *setTime, long *lightMode)
       if (cmdParser.equalCommand("Start"))
       {
         *isRunning = true;
-        Serial.println("Start lighting");
+        Serial.println("Start lighting...");
       }
       else if (cmdParser.equalCommand("Time"))
       {
         long parsedTimeVal = param.toInt();
-        Serial.print("[DEBUG] parsed value: ");
-        Serial.println(parsedTimeVal);
-        if ((parsedTimeVal == 0) || (parsedTimeVal > 3600))
+        if ((parsedTimeVal < 90) || (parsedTimeVal > 3600))
         {
-          Serial.println("Time must be 0 < t <= 3600 [s]");
+          Serial.println("Time must be 90 < t <= 3600 [s]");
         }
         else
         {
@@ -58,8 +52,6 @@ void ParserLoop(bool *isRunning, long *setTime, long *lightMode)
       else if (cmdParser.equalCommand("Mode"))
       {
         long parsedModeValue = param.toInt();
-        Serial.print("[DEBUG] parsed value: ");
-        Serial.println(parsedModeValue);
 
         if (parsedModeValue > 3 || parsedModeValue == 0)
         {
@@ -70,6 +62,21 @@ void ParserLoop(bool *isRunning, long *setTime, long *lightMode)
           *lightMode = parsedModeValue;
           Serial.print("Mode set: ");
           Serial.println(*lightMode);
+        }
+      }
+      else if (cmdParser.equalCommand("Brightness"))
+      {
+        long parsedBrightValue = param.toInt();
+
+        if (parsedBrightValue < 0 || parsedBrightValue > 100)
+        {
+          Serial.println("Brightness must be between 0 to 100");
+        }
+        else
+        {
+          *brightness = parsedBrightValue;
+          Serial.print("Brightness set: ");
+          Serial.println(*brightness);
         }
       }
       else
@@ -85,7 +92,8 @@ void ParserLoop(bool *isRunning, long *setTime, long *lightMode)
     Serial.print(*lightMode);
     Serial.print(", Time: ");
     Serial.print(*setTime);
-    Serial.println("s");
+    Serial.print("s, Brightness: ");
+    Serial.println(*brightness);
   }
   else
   {

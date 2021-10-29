@@ -2,6 +2,6 @@
 #define PARSER_H
 #include <CmdParser.hpp>
 
-void ParserLoop(bool* isRunning, long* setTime, long* lightMode);
+void ParserLoop(bool *isRunning, long *setTime, long *lightMode, long *brightness);
 
 #endif
